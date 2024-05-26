@@ -1,65 +1,97 @@
 package tree;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.Stack;
 
-public class BalancedBinaryTree implements Tree {
+public class BalancedBinaryTree implements Tree{
     private TreeNode root;
+    public int maxDifference;
 
-    public BalancedBinaryTree() {
+    public BalancedBinaryTree(int maxDifference) {
         this.root = null;
+        this.maxDifference = maxDifference;
     }
 
-    public void createRandomTree(int numberOfValues) {
-        for (int i = 0; i < numberOfValues; i++) {
-            int value = (int) (Math.random() * 100); // Random value generation
-            insert(value);
+    public void createRandomTree(int numberOfNodes) {
+        if (numberOfNodes <= 0) return;
+
+        List<TreeNode> nodes = new ArrayList<>();
+        int rootValue = (int) (Math.random() * 100);
+        root = new TreeNode(rootValue);
+        nodes.add(root);
+
+        for (int i = 1; i < numberOfNodes; i++) {
+            TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size()));
+            int newValue = (int) (Math.random() * 100);
+            insertWithBalance(parentNode, newValue, nodes);
+            if (nodes.size() >= numberOfNodes) break; // Exit loop when desired number of nodes is reached
         }
     }
 
-    public void insert(int newValue) {
-        if (root == null) {
-            root = new TreeNode(newValue);
-        } else {
-            insertBalanced(root, newValue);
-        }
-    }
+    private void insertWithBalance(TreeNode parentNode, int newValue, List<TreeNode> nodes) {
+        TreeNode newNode = new TreeNode(newValue);
+        if (parentNode.getChildren().size() < 2) {
+            parentNode.addChild(newNode);
 
-    private void insertBalanced(TreeNode node, int newValue) {
-        Queue<TreeNode> queue = new LinkedList<>();
-        queue.add(node);
-
-        while (!queue.isEmpty()) {
-            TreeNode currentNode = queue.poll();
-
-            if (currentNode.getChildren().size() < 2) {
-                currentNode.addChild(new TreeNode(newValue));
-                return;
+            // Check if the tree is still balanced after insertion
+            if (!isBalanced()) {
+                // If unbalanced, remove the newly added node
+                System.out.println("Insertion would unbalance the tree, rolling back.");
+                parentNode.removeChild(newNode);
             } else {
-                for (TreeNode child : currentNode.getChildren()) {
-                    queue.add(child);
-                }
+                nodes.add(newNode);
             }
+        } else {
+            System.out.println("Parent node already has two children.");
         }
     }
 
     public void delete(int value) {
-        // Logic for deleting from a balanced binary tree
+        if (root == null) return;
+        if (root.getValue() == value) {
+            root = null;
+            return;
+        }
+        deleteRecursive(root, value);
+    }
+
+    private boolean deleteRecursive(TreeNode currentNode, int value) {
+        for (TreeNode child : currentNode.getChildren()) {
+            if (child.getValue() == value) {
+                currentNode.removeChild(child);
+                if (!isBalanced()) {
+                    System.out.println("Deletion would unbalance the tree, rolling back.");
+                    currentNode.addChild(child);
+                    return false;
+                }
+                return true;
+            } else {
+                boolean deleted = deleteRecursive(child, value);
+                if (deleted) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public TreeNode search(int value) {
         return search(root, value);
     }
 
-    private TreeNode search(TreeNode node, int value) {
-        if (node == null) {
+    private TreeNode search(TreeNode currentNode, int value) {
+        if (currentNode == null) {
             return null;
         }
-        if (node.getValue() == value) {
-            return node;
+
+        if (currentNode.getValue() == value) {
+            return currentNode;
         }
 
-        for (TreeNode child : node.getChildren()) {
+        for (TreeNode child : currentNode.getChildren()) {
             TreeNode result = search(child, value);
             if (result != null) {
                 return result;
@@ -68,7 +100,39 @@ public class BalancedBinaryTree implements Tree {
         return null;
     }
 
-    public void traverse() {
+    public TreeNode getRoot() {
+        return root;
+    }
+
+    public boolean isBalanced() {
+        if (root == null) return true;
+
+        List<Integer> leafDepths = new ArrayList<>();
+        calculateLeafDepths(root, 0, leafDepths);
+
+        int minDepth = Integer.MAX_VALUE;
+        int maxDepth = Integer.MIN_VALUE;
+
+        for (int depth : leafDepths) {
+            if (depth < minDepth) minDepth = depth;
+            if (depth > maxDepth) maxDepth = depth;
+        }
+
+        return (maxDepth - minDepth) <= maxDifference;
+    }
+
+    private void calculateLeafDepths(TreeNode node, int currentDepth, List<Integer> leafDepths) {
+        if (node.getChildren().isEmpty()) {
+            leafDepths.add(currentDepth);
+            return;
+        }
+
+        for (TreeNode child : node.getChildren()) {
+            calculateLeafDepths(child, currentDepth + 1, leafDepths);
+        }
+    }
+
+    public void bfsTraverse() {
         if (root != null) {
             traverseBFS();
         }
@@ -86,15 +150,58 @@ public class BalancedBinaryTree implements Tree {
                 queue.add(child);
             }
         }
+        System.out.println();
     }
 
-    public TreeNode getRoot() {
-        return root;
+    public void dfsTraverse() {
+        if (root != null) {
+            traverseDFS();
+        }
     }
 
-	@Override
-	public void insert(int parentValue, int newValue) {
-		// TODO Auto-generated method stub
-		
-	}
+    private void traverseDFS() {
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root);
+
+        while (!stack.isEmpty()) {
+            TreeNode currentNode = stack.pop();
+            System.out.print(currentNode.getValue() + " ");
+
+            List<TreeNode> children = currentNode.getChildren();
+            for (int i = children.size() - 1; i >= 0; i--) {
+                stack.push(children.get(i));
+            }
+        }
+        System.out.println();
+    }
+
+    public void setMaximumDifference(int maxDifference) {
+        this.maxDifference = maxDifference;
+    }
+
+    public void insert(int parentValue, int newValue) {
+        if (root == null) {
+            root = new TreeNode(newValue);
+            return;
+        }
+
+        TreeNode parentNode = search(root, parentValue);
+        if (parentNode != null) {
+            if (parentNode.getChildren().size() < 2) {
+                TreeNode newNode = new TreeNode(newValue);
+                parentNode.addChild(newNode);
+
+                // Check if the tree is still balanced after insertion
+                if (!isBalanced()) {
+                    // If unbalanced, remove the newly added node
+                    System.out.println("Insertion would unbalance the tree, rolling back.");
+                    parentNode.removeChild(newNode);
+                }
+            } else {
+                System.out.println("Parent node already has two children.");
+            }
+        } else {
+            System.out.println("Parent value not found in the tree.");
+        }
+    }
 }

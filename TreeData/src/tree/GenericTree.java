@@ -1,6 +1,8 @@
 package tree;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class GenericTree implements Tree {
@@ -11,36 +13,45 @@ public class GenericTree implements Tree {
     }
 
     @Override
-    public void createRandomTree(int numberOfValues) {
-        for (int i = 0; i < numberOfValues; i++) {
-            int parentValue = (int) (Math.random() * 100); // Random parent value generation, adjust range as needed
-            int newValue = (int) (Math.random() * 100); // Random new value generation, adjust range as needed
+    public void createRandomTree(int numberOfNodes) {
+        if (numberOfNodes <= 0) return;
 
-            // If it's the first node, it becomes the root
-            if (root == null) {
-                root = new TreeNode(newValue);
-            } else {
-                // Insert new value as a child of the randomly selected parent value
-                insert(parentValue, newValue);
-            }
+        List<TreeNode> nodes = new ArrayList<>(); // Maintain a list of nodes already added to the tree
+
+        // Generate a random value for the root node
+        int rootValue = (int) (Math.random() * 100); // Random root value generation, adjust range as needed
+        root = new TreeNode(rootValue);
+        nodes.add(root);
+
+        // Generate the remaining values and insert them into the tree
+        for (int i = 1; i < numberOfNodes; i++) {
+            TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size())); // Randomly select a parent node
+            int newValue = (int) (Math.random() * 100); // Random new value generation, adjust range as needed
+            insert(parentNode.getValue(), newValue); // Pass parent node directly
+            nodes.add(new TreeNode(newValue)); // Add the new node to the list of nodes
         }
     }
+
+
 
     @Override
     public void insert(int parentValue, int newValue) {
         if (root == null) {
+            // Inserting as root node
             root = new TreeNode(newValue);
             return;
         }
 
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
+            // Insert the new value as a child of the parent node
             TreeNode newNode = new TreeNode(newValue);
             parentNode.addChild(newNode);
         } else {
             System.out.println("Parent value not found in the tree.");
         }
     }
+
 
     @Override
     public void delete(int value) {
@@ -94,13 +105,6 @@ public class GenericTree implements Tree {
         return null;
     }
 
-    @Override
-    public void traverse() {
-        if (root != null) {
-            traverseBFS();
-        }
-    }
-
     private void traverseBFS() {
         Queue<TreeNode> queue = new LinkedList<>();
         queue.add(root);
@@ -118,4 +122,17 @@ public class GenericTree implements Tree {
     public TreeNode getRoot() {
         return root;
     }
+
+    public void bfsTraverse() {
+        if (root != null) {
+            traverseBFS();
+        }
+    }
+    
+    public void dfsTraverse() {
+        if (root != null) {
+            traverseBFS();
+        }
+    }
+
 }

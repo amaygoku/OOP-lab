@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -12,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import tree.*;
 
@@ -36,10 +38,10 @@ public class TreeVisualizer {
                 tree = new GenericTree();
                 break;
             case "BalancedTree":
-                tree = new BalancedBinaryTree(); // Assume this is a balanced tree implementation
+                tree = new BalancedTree(0); // Assume this is a balanced tree implementation
                 break;
             case "BalancedBinaryTree":
-                tree = new BalancedBinaryTree();
+                tree = new BalancedBinaryTree(0);
                 break;
         }
     }
@@ -64,16 +66,21 @@ public class TreeVisualizer {
 
         Button searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchNode());
-
+        
+        Button traverseButton = new Button("Traverse");
+        traverseButton.setOnAction(e -> traverseNode());
+        
+        Button updateButton = new Button("Update");
+        updateButton.setOnAction(e -> updateNode());
 
         // Styling the buttons
-        for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton}) {
+        for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton}) {
             button.setStyle("-fx-background-color: blue; -fx-text-fill: white; -fx-font-size: 16;");
             button.setMaxWidth(Double.MAX_VALUE);
             button.setAlignment(Pos.CENTER);
         }
 
-        controls.getChildren().addAll(createButton, insertButton, deleteButton, searchButton);
+        controls.getChildren().addAll(createButton, insertButton, deleteButton, searchButton,traverseButton, updateButton);
 
         mainLayout = new BorderPane();
         mainLayout.setCenter(treePane);
@@ -85,6 +92,45 @@ public class TreeVisualizer {
     }
     
     private void createRandomTree() {
+        if (tree instanceof BalancedTree || tree instanceof BalancedBinaryTree) {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Maximum Distance");
+            dialog.setHeaderText("Enter the maximum difference in distance:");
+            dialog.setContentText("Maximum difference:");
+            dialog.showAndWait().ifPresent(maxDiff -> {
+                try {
+                    int maxDifference = Integer.parseInt(maxDiff);
+                    ((BalancedTree) tree).setMaximumDifference(maxDifference);
+                    // Once the maximum difference is set, proceed to create the random tree
+                    createRandomTreeWithMaxDifference();
+                } catch (NumberFormatException e) {
+                    showAlert("Invalid Input", "Please enter a valid integer.");
+                }
+            });
+        } else {
+            // For other types of trees, simply create a random tree without asking for the maximum difference
+            createRandomTreeWithoutMaxDifference();
+        }
+    }
+
+    private void createRandomTreeWithMaxDifference() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Create Random Tree");
+        dialog.setHeaderText("Enter number of values:");
+        dialog.setContentText("Number of values:");
+
+        dialog.showAndWait().ifPresent(numValues -> {
+            try {
+                int numberOfValues = Integer.parseInt(numValues);
+                ((BalancedTree) tree).createRandomTree(numberOfValues);
+                drawTree();
+            } catch (NumberFormatException e) {
+                showAlert("Invalid Input", "Please enter a valid integer.");
+            }
+        });
+    }
+
+    private void createRandomTreeWithoutMaxDifference() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Create Random Tree");
         dialog.setHeaderText("Enter number of values:");
@@ -101,36 +147,97 @@ public class TreeVisualizer {
         });
     }
 
+
     private void insertNode() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Insert Node");
         dialog.setHeaderText("Insert a new node");
-        dialog.setContentText("Enter parent value and new value (comma-separated):");
 
-        dialog.showAndWait().ifPresent(input -> {
-            try {
-                String[] values = input.split(",");
-                if (values.length == 2) {
-                    int parentValue = Integer.parseInt(values[0].trim());
-                    int newValue = Integer.parseInt(values[1].trim());
-                    if (tree instanceof GenericTree) {
-                        ((GenericTree) tree).insert(parentValue, newValue);
-                    } else if (tree instanceof BinaryTree) {
-                        ((BinaryTree) tree).insert(parentValue, newValue);
-                    } else if (tree instanceof BalancedBinaryTree) {
-                        ((BalancedBinaryTree) tree).insert(parentValue, newValue);
-                    } else {
-                        showAlert("Unsupported Operation", "Insert operation is not supported for this tree type.");
+        // Check if the root node exists
+        if (tree.getRoot() == null) {
+            if (tree instanceof BalancedTree || tree instanceof BalancedBinaryTree) {
+                TextInputDialog maxDiffDialog = new TextInputDialog();
+                maxDiffDialog.setTitle("Maximum Difference");
+                maxDiffDialog.setHeaderText("Enter the maximum difference in distance:");
+
+                maxDiffDialog.showAndWait().ifPresent(maxDiffInput -> {
+                    try {
+                        int maxDifference = Integer.parseInt(maxDiffInput.trim());
+
+                        if (tree instanceof BalancedTree) {
+                            ((BalancedTree) tree).setMaximumDifference(maxDifference);
+                        } else if (tree instanceof BalancedBinaryTree) {
+                            ((BalancedBinaryTree) tree).setMaximumDifference(maxDifference);
+                        }
+
+                        dialog.setContentText("Enter value for the root node:");
+                        dialog.showAndWait().ifPresent(rootValueInput -> {
+                            try {
+                                int rootValue = Integer.parseInt(rootValueInput.trim());
+                                if (tree instanceof BalancedTree) {
+                                    ((BalancedTree) tree).insert(0, rootValue); // Inserting as root
+                                } else if (tree instanceof BalancedBinaryTree) {
+                                    ((BalancedBinaryTree) tree).insert(0, rootValue); // Inserting as root
+                                }
+                                drawTree();
+                            } catch (NumberFormatException e) {
+                                showAlert("Invalid Input", "Please enter a valid integer value for the root node.");
+                            }
+                        });
+
+                    } catch (NumberFormatException e) {
+                        showAlert("Invalid Input", "Please enter a valid integer value for the maximum difference.");
                     }
-                    drawTree();
-                } else {
-                    showAlert("Invalid Input", "Please enter two comma-separated values.");
-                }
-            } catch (NumberFormatException e) {
-                showAlert("Invalid Input", "Please enter valid integer values.");
+                });
+            } else {
+                dialog.setContentText("Enter value for the root node:");
+                dialog.showAndWait().ifPresent(input -> {
+                    try {
+                        int newValue = Integer.parseInt(input.trim());
+                        if (tree instanceof GenericTree) {
+                            ((GenericTree) tree).insert(0, newValue); // Inserting as root
+                        } else if (tree instanceof BinaryTree) {
+                            ((BinaryTree) tree).insert(0, newValue); // Inserting as root
+                        } else {
+                            showAlert("Unsupported Operation", "Insert operation is not supported for this tree type.");
+                        }
+                        drawTree();
+                    } catch (NumberFormatException e) {
+                        showAlert("Invalid Input", "Please enter a valid integer value for the root node.");
+                    }
+                });
             }
-        });
+        } else {
+            dialog.setContentText("Enter parent value and new value (comma-separated):");
+            dialog.showAndWait().ifPresent(input -> {
+                try {
+                    String[] values = input.split(",");
+                    if (values.length == 2) {
+                        int parentValue = Integer.parseInt(values[0].trim());
+                        int newValue = Integer.parseInt(values[1].trim());
+                        if (tree instanceof GenericTree) {
+                            ((GenericTree) tree).insert(parentValue, newValue);
+                        } else if (tree instanceof BinaryTree) {
+                            ((BinaryTree) tree).insert(parentValue, newValue);
+                        } else if (tree instanceof BalancedTree) {
+                            ((BalancedTree) tree).insert(parentValue, newValue);
+                        } else if (tree instanceof BalancedBinaryTree) {
+                            ((BalancedBinaryTree) tree).insert(parentValue, newValue);
+                        } else {
+                            showAlert("Unsupported Operation", "Insert operation is not supported for this tree type.");
+                        }
+                        drawTree();
+                    } else {
+                        showAlert("Invalid Input", "Please enter two comma-separated values.");
+                    }
+                } catch (NumberFormatException e) {
+                    showAlert("Invalid Input", "Please enter valid integer values.");
+                }
+            });
+        }
     }
+
+
 
     private void deleteNode() {
         TextInputDialog dialog = new TextInputDialog();
@@ -169,16 +276,43 @@ public class TreeVisualizer {
             }
         });
     }
+    
+    private void traverseNode() {
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("BFS", "DFS");
+        dialog.setTitle("Traverse Nodes");
+        dialog.setHeaderText("Select traversal method");
+        dialog.setContentText("Choose traversal method:");
+
+        dialog.showAndWait().ifPresent(selected -> {
+            if (selected.equals("BFS")) {
+                bfsTraversal();
+            } else if (selected.equals("DFS")) {
+                dfsTraversal();
+            }
+        });
+    }
+    
+    private void updateNode() {}
+
+    private void bfsTraversal() {
+    	tree.bfsTraverse();
+    }
+
+    private void dfsTraversal() {
+    	tree.dfsTraverse();
+    }
+
+
 
     private void drawTree() {
         treePane.getChildren().clear();
         if (tree instanceof BinaryTree || tree instanceof BalancedBinaryTree) {
-            TreeNode root = ((BinaryTree) tree).getRoot();
+            TreeNode root = tree.getRoot();
             if (root != null) {
                 drawTreeRecursive(root, treePane.getWidth() / 2, 30, treePane.getWidth() / 4, 50);
             }
-        } else if (tree instanceof GenericTree) {
-            TreeNode root = ((GenericTree) tree).getRoot();
+        } else if (tree instanceof GenericTree || tree instanceof BalancedTree) {
+            TreeNode root =  tree.getRoot();
             if (root != null) {
                 drawGenericTree(root, treePane.getWidth() / 2, 30, treePane.getWidth() / 4, 50);
             }
@@ -200,13 +334,18 @@ public class TreeVisualizer {
         circle.setFill(Color.WHITE);
         circle.setStroke(Color.BLACK);
         treePane.getChildren().add(circle);
+
+        // Display the weight of the node
+        Text text = new Text(x - 5, y + 5, String.valueOf(node.getValue()));
+        treePane.getChildren().add(text);
     }
+
 
     private void drawGenericTree(TreeNode node, double x, double y, double xOffset, double yOffset) {
         if (node == null) return;
 
-        double angleStep = 360.0 / node.getChildren().size();
-        double angle = 0;
+        double angleStep = 150.0 / node.getChildren().size();
+        double angle = 30;
 
         for (TreeNode child : node.getChildren()) {
             double newX = x + xOffset * Math.cos(Math.toRadians(angle));
@@ -221,6 +360,9 @@ public class TreeVisualizer {
         circle.setFill(Color.WHITE);
         circle.setStroke(Color.BLACK);
         treePane.getChildren().add(circle);
+        
+        Text text = new Text(x - 5, y + 5, String.valueOf(node.getValue()));
+        treePane.getChildren().add(text);
     }
 
     private void showAlert(String title, String message) {

@@ -1,7 +1,10 @@
 package tree;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.Stack;
 
 public class BinaryTree implements Tree  {
     private TreeNode root;
@@ -10,19 +13,25 @@ public class BinaryTree implements Tree  {
         this.root = null;
     }
 
-    public void createRandomTree(int numberOfValues) {
-        if (numberOfValues <= 0) return;
+    public void createRandomTree(int numberOfNodes) {
+        if (numberOfNodes <= 0) return;
+
+        List<TreeNode> nodes = new ArrayList<>(); // Maintain a list of nodes already added to the tree
 
         // Generate a random value for the root node
         int rootValue = (int) (Math.random() * 100); // Random root value generation, adjust range as needed
         root = new TreeNode(rootValue);
+        nodes.add(root);
 
-        // Generate the remaining values and insert them as children of the root
-        for (int i = 1; i < numberOfValues; i++) {
+        // Generate the remaining values and insert them into the tree
+        for (int i = 1; i < numberOfNodes; i++) {
+            TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size())); // Randomly select a parent node
             int newValue = (int) (Math.random() * 100); // Random new value generation, adjust range as needed
-            insert(rootValue, newValue);
+            insert(parentNode.getValue(), newValue);
+            nodes.add(new TreeNode(newValue)); // Add the new node to the list of nodes
         }
     }
+
     public void insert(int parentValue, int newValue) {
         if (root == null) {
             root = new TreeNode(newValue);
@@ -109,7 +118,13 @@ public class BinaryTree implements Tree  {
         return null;
     }
 
-    public void traverse() {
+    public void bfsTraverse() {
+        if (root != null) {
+            traverseBFS();
+        }
+    }
+    
+    public void dfsTraverse() {
         if (root != null) {
             traverseBFS();
         }
@@ -132,4 +147,21 @@ public class BinaryTree implements Tree  {
     public TreeNode getRoot() {
         return root;
     }
+
+	private void traverseDFS() {
+	    Stack<TreeNode> stack = new Stack<>();
+	    stack.push(root);
+
+	    while (!stack.isEmpty()) {
+	        TreeNode currentNode = stack.pop();
+	        System.out.print(currentNode.getValue() + " ");
+
+	        // Push children onto the stack in reverse order to achieve DFS
+	        List<TreeNode> children = currentNode.getChildren();
+	        for (int i = children.size() - 1; i >= 0; i--) {
+	            stack.push(children.get(i));
+	        }
+	    }
+	}
+
 }
