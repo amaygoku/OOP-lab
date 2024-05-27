@@ -22,8 +22,12 @@ public class TreeVisualizer {
     private Tree tree;
     private String treeType;
     private BorderPane mainLayout;
+    private Stage primaryStage;
+    private Scene mainMenuScene;
 
-    public TreeVisualizer(String treeType) {
+    public TreeVisualizer(String treeType, Stage primaryStage, Scene mainMenuScene) {
+    	this.primaryStage = primaryStage;
+        this.mainMenuScene = mainMenuScene;
         this.treeType = treeType;
         initializeTree();
         setupUI();
@@ -72,22 +76,29 @@ public class TreeVisualizer {
         
         Button updateButton = new Button("Update");
         updateButton.setOnAction(e -> updateNode());
+        
+        Button backButton = new Button("Back");
+        backButton.setOnAction(e -> back());
 
         // Styling the buttons
-        for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton}) {
+        for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton,backButton}) {
             button.setStyle("-fx-background-color: blue; -fx-text-fill: white; -fx-font-size: 16;");
             button.setMaxWidth(Double.MAX_VALUE);
             button.setAlignment(Pos.CENTER);
         }
 
-        controls.getChildren().addAll(createButton, insertButton, deleteButton, searchButton,traverseButton, updateButton);
+        controls.getChildren().addAll(createButton, insertButton, deleteButton, searchButton,traverseButton, updateButton,backButton);
 
         mainLayout = new BorderPane();
         mainLayout.setCenter(treePane);
         mainLayout.setRight(controls);
     }
 
-    public BorderPane getView() {
+    private void back() {
+        primaryStage.setScene(mainMenuScene);
+    }
+
+	public BorderPane getView() {
         return mainLayout;
     }
     
@@ -100,8 +111,12 @@ public class TreeVisualizer {
             dialog.showAndWait().ifPresent(maxDiff -> {
                 try {
                     int maxDifference = Integer.parseInt(maxDiff);
-                    ((BalancedTree) tree).setMaximumDifference(maxDifference);
-                    // Once the maximum difference is set, proceed to create the random tree
+                    if (tree instanceof BalancedTree) {
+                        ((BalancedTree) tree).setMaximumDifference(maxDifference);
+                    } else if (tree instanceof BalancedBinaryTree) {
+                        ((BalancedBinaryTree) tree).setMaximumDifference(maxDifference);
+                    }
+
                     createRandomTreeWithMaxDifference();
                 } catch (NumberFormatException e) {
                     showAlert("Invalid Input", "Please enter a valid integer.");
@@ -122,7 +137,7 @@ public class TreeVisualizer {
         dialog.showAndWait().ifPresent(numValues -> {
             try {
                 int numberOfValues = Integer.parseInt(numValues);
-                ((BalancedTree) tree).createRandomTree(numberOfValues);
+                tree.createRandomTree(numberOfValues);
                 drawTree();
             } catch (NumberFormatException e) {
                 showAlert("Invalid Input", "Please enter a valid integer.");
@@ -372,4 +387,5 @@ public class TreeVisualizer {
         alert.setContentText(message);
         alert.showAndWait();
     }
+    
 }

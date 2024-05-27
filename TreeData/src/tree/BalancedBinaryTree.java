@@ -1,6 +1,7 @@
 package tree;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -14,24 +15,62 @@ public class BalancedBinaryTree implements Tree{
         this.root = null;
         this.maxDifference = maxDifference;
     }
-
+    
+    
     public void createRandomTree(int numberOfNodes) {
+    	int plus=0;
         if (numberOfNodes <= 0) return;
 
-        List<TreeNode> nodes = new ArrayList<>();
-        int rootValue = (int) (Math.random() * 100);
+        List<TreeNode> nodes = new ArrayList<>(); // Maintain a list of nodes already added to the tree
+
+        // Generate a random value for the root node
+        int rootValue = (int) (Math.random() * 100); // Random root value generation, adjust range as needed
         root = new TreeNode(rootValue);
         nodes.add(root);
 
+        // Generate the remaining values and insert them into the tree
         for (int i = 1; i < numberOfNodes; i++) {
-            TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size()));
-            int newValue = (int) (Math.random() * 100);
-            insertWithBalance(parentNode, newValue, nodes);
-            if (nodes.size() >= numberOfNodes) break; // Exit loop when desired number of nodes is reached
+            // Find a parent node with less than two children and ensures tree remains balanced
+            TreeNode parentNode = findParentWithAvailableSlot(nodes);
+
+            if (parentNode == null) {
+                //System.out.println("All nodes have maximum children, cannot insert more.");
+                break; // No eligible parents left
+            }
+
+            int newValue = (int) (Math.random() * 100); // Random new value generation, adjust range as needed
+            TreeNode newNode = new TreeNode(newValue);
+            parentNode.addChild(newNode); // Add the new node as a child of the parent
+            nodes.add(newNode); // Add the new node to the list of nodes
+            
+            if (!isBalanced()) {
+                // If tree is not balanced after insertion, remove the newly added node
+                parentNode.removeChild(newNode);
+                nodes.remove(newNode);
+                plus=1;
+                numberOfNodes+=plus;
+                plus=0;
+                //System.out.println("Tree became unbalanced after adding node, removing the last added node.");
+            }
         }
     }
 
-    private void insertWithBalance(TreeNode parentNode, int newValue, List<TreeNode> nodes) {
+    private TreeNode findParentWithAvailableSlot(List<TreeNode> nodes) {
+        // Shuffle the list to randomize selection
+        Collections.shuffle(nodes);
+
+        // Iterate through the shuffled list and find a parent node with less than two children
+        for (TreeNode node : nodes) {
+            if (node.getChildren().size() < 2) {
+                return node;
+            }
+        }
+
+        return null; // No parent with available slot found
+    }
+
+
+   /* private void insertWithBalance(TreeNode parentNode, int newValue, List<TreeNode> nodes) {
         TreeNode newNode = new TreeNode(newValue);
         if (parentNode.getChildren().size() < 2) {
             parentNode.addChild(newNode);
@@ -47,7 +86,7 @@ public class BalancedBinaryTree implements Tree{
         } else {
             System.out.println("Parent node already has two children.");
         }
-    }
+    }   */
 
     public void delete(int value) {
         if (root == null) return;
@@ -204,4 +243,5 @@ public class BalancedBinaryTree implements Tree{
             System.out.println("Parent value not found in the tree.");
         }
     }
+
 }

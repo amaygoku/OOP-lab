@@ -102,7 +102,7 @@ public class MainMenu extends Application {
     }
 
     private void switchToTreeVisualizer(String treeType) {
-        TreeVisualizer treeVisualizer = new TreeVisualizer(treeType);
+        TreeVisualizer treeVisualizer = new TreeVisualizer(treeType, primaryStage, primaryStage.getScene());
         Scene scene = new Scene(treeVisualizer.getView(), 1000, 600);
         primaryStage.setScene(scene);
     }
@@ -139,4 +139,6 @@ public class MainMenu extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    
+    
 }

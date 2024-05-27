@@ -26,23 +26,24 @@ public class BalancedTree implements Tree {
 
         for (int i = 1; i < numberOfNodes; i++) {
             TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size()));
-            int newValue = (int) (Math.random() * 100);
-            insertWithBalance(parentNode, newValue, nodes);
+            int newValue = (int) (Math.random() * 100);           
+            numberOfNodes+=insertWithBalance(parentNode, newValue, nodes);;
             if (nodes.size() >= numberOfNodes) break; // Exit loop when desired number of nodes is reached
         }
     }
 
-    private void insertWithBalance(TreeNode parentNode, int newValue, List<TreeNode> nodes) {
+    private int insertWithBalance(TreeNode parentNode, int newValue, List<TreeNode> nodes) {
         TreeNode newNode = new TreeNode(newValue);
         parentNode.addChild(newNode);
 
         // Check if the tree is still balanced after insertion
         if (!isBalanced()) {
             // If unbalanced, remove the newly added node
-            System.out.println("Insertion would unbalance the tree, rolling back.");
             parentNode.removeChild(newNode);
+            return 1;
         } else {
             nodes.add(newNode);
+            return 0;
         }
     }
 
