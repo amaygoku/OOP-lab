@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -57,7 +58,7 @@ public class TreeVisualizer {
         VBox controls = new VBox(10);
         controls.setPadding(new Insets(10));
         controls.setAlignment(Pos.TOP_LEFT);
-        controls.setStyle("-fx-background-color: lightpink;");
+        controls.setStyle("-fx-background-color: #98FB98;");
         
         Button createButton = new Button("Create");
         createButton.setOnAction(e -> createRandomTree());
@@ -83,19 +84,75 @@ public class TreeVisualizer {
         // Styling the buttons
         for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton,backButton}) {
             button.setStyle("-fx-background-color: blue; -fx-text-fill: white; -fx-font-size: 16;");
+            button.setPadding(new Insets(20)); // Increased padding
+            button.setMinHeight(50); // Set minimum height
             button.setMaxWidth(Double.MAX_VALUE);
             button.setAlignment(Pos.CENTER);
         }
 
         controls.getChildren().addAll(createButton, insertButton, deleteButton, searchButton,traverseButton, updateButton,backButton);
 
+        // Create the bottom bar with Undo and Redo buttons
+        HBox bottomBar = new HBox(20); // Spacing between buttons
+        bottomBar.setPadding(new Insets(5)); // Padding around the HBox
+        bottomBar.setAlignment(Pos.CENTER);
+        bottomBar.setStyle("-fx-background-color: lightgray;");
+
+        Button undoButton = new Button("Undo");
+        undoButton.setStyle("-fx-font-size: 20;");
+        undoButton.setPadding(new Insets(5));
+        undoButton.setMinHeight(20);
+        undoButton.setMinWidth(100); // Minimum width for the button
+        undoButton.setAlignment(Pos.CENTER);
+
+        Button redoButton = new Button("Redo");
+        redoButton.setStyle("-fx-font-size: 20;");
+        redoButton.setPadding(new Insets(5));
+        redoButton.setMinHeight(20);
+        redoButton.setMinWidth(100); // Minimum width for the button
+        redoButton.setAlignment(Pos.CENTER);
+
+        Button pauseButton = new Button("Pause");
+        pauseButton.setStyle("-fx-font-size: 20;");
+        pauseButton.setPadding(new Insets(5));
+        pauseButton.setMinHeight(20);
+        pauseButton.setMinWidth(100); // Minimum width for the button
+        pauseButton.setAlignment(Pos.CENTER);
+
+        Button continueButton = new Button("Continue");
+        continueButton.setStyle("-fx-font-size: 20;");
+        continueButton.setPadding(new Insets(5));
+        continueButton.setMinHeight(20);
+        continueButton.setMinWidth(100); // Minimum width for the button
+        continueButton.setAlignment(Pos.CENTER);
+
+        Button backwardButton = new Button("Backward");
+        backwardButton.setStyle("-fx-font-size: 20;");
+        backwardButton.setPadding(new Insets(5));
+        backwardButton.setMinHeight(20);
+        backwardButton.setMinWidth(100); // Minimum width for the button
+        backwardButton.setAlignment(Pos.CENTER);
+
+        Button forwardButton = new Button("Forward");
+        forwardButton.setStyle("-fx-font-size: 20;");
+        forwardButton.setPadding(new Insets(5));
+        forwardButton.setMinHeight(20);
+        forwardButton.setMinWidth(100); // Minimum width for the button
+        forwardButton.setAlignment(Pos.CENTER);
+
+        bottomBar.getChildren().addAll(undoButton, redoButton, pauseButton, continueButton, backwardButton, forwardButton);
+
         mainLayout = new BorderPane();
         mainLayout.setCenter(treePane);
         mainLayout.setRight(controls);
+        mainLayout.setBottom(bottomBar);
     }
 
     private void back() {
+    	
         primaryStage.setScene(mainMenuScene);
+        primaryStage.setFullScreen(true); // Set full screen mode
+
     }
 
 	public BorderPane getView() {
@@ -105,6 +162,7 @@ public class TreeVisualizer {
     private void createRandomTree() {
         if (tree instanceof BalancedTree || tree instanceof BalancedBinaryTree) {
             TextInputDialog dialog = new TextInputDialog();
+            dialog.initOwner(primaryStage);
             dialog.setTitle("Maximum Distance");
             dialog.setHeaderText("Enter the maximum difference in distance:");
             dialog.setContentText("Maximum difference:");
@@ -130,6 +188,7 @@ public class TreeVisualizer {
 
     private void createRandomTreeWithMaxDifference() {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Create Random Tree");
         dialog.setHeaderText("Enter number of values:");
         dialog.setContentText("Number of values:");
@@ -147,6 +206,7 @@ public class TreeVisualizer {
 
     private void createRandomTreeWithoutMaxDifference() {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Create Random Tree");
         dialog.setHeaderText("Enter number of values:");
         dialog.setContentText("Number of values:");
@@ -165,6 +225,7 @@ public class TreeVisualizer {
 
     private void insertNode() {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Insert Node");
         dialog.setHeaderText("Insert a new node");
 
@@ -172,6 +233,7 @@ public class TreeVisualizer {
         if (tree.getRoot() == null) {
             if (tree instanceof BalancedTree || tree instanceof BalancedBinaryTree) {
                 TextInputDialog maxDiffDialog = new TextInputDialog();
+                maxDiffDialog.initOwner(primaryStage);                
                 maxDiffDialog.setTitle("Maximum Difference");
                 maxDiffDialog.setHeaderText("Enter the maximum difference in distance:");
 
@@ -256,6 +318,7 @@ public class TreeVisualizer {
 
     private void deleteNode() {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Delete Node");
         dialog.setHeaderText("Delete a node");
         dialog.setContentText("Please enter a value:");
@@ -273,6 +336,7 @@ public class TreeVisualizer {
 
     private void searchNode() {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Search Node");
         dialog.setHeaderText("Search for a node");
         dialog.setContentText("Please enter a value:");
@@ -294,6 +358,7 @@ public class TreeVisualizer {
     
     private void traverseNode() {
         ChoiceDialog<String> dialog = new ChoiceDialog<>("BFS", "DFS");
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Traverse Nodes");
         dialog.setHeaderText("Select traversal method");
         dialog.setContentText("Choose traversal method:");
@@ -382,6 +447,7 @@ public class TreeVisualizer {
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.initOwner(primaryStage); // Set the owner to the primary stage
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
