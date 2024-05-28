@@ -32,6 +32,7 @@ public class TreeVisualizer {
         this.treeType = treeType;
         initializeTree();
         setupUI();
+        
     }
 
     private void initializeTree() {
@@ -54,6 +55,7 @@ public class TreeVisualizer {
     private void setupUI() {
         treePane = new Pane();
         treePane.setPrefSize(800, 600);
+        treePane.setStyle("-fx-background-color: #F5F5DC;");
 
         VBox controls = new VBox(10);
         controls.setPadding(new Insets(10));
@@ -83,7 +85,7 @@ public class TreeVisualizer {
 
         // Styling the buttons
         for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton,backButton}) {
-            button.setStyle("-fx-background-color: blue; -fx-text-fill: white; -fx-font-size: 16;");
+            button.setStyle("-fx-background-color: #808080; -fx-text-fill: white; -fx-font-size: 16;");
             button.setPadding(new Insets(20)); // Increased padding
             button.setMinHeight(50); // Set minimum height
             button.setMaxWidth(Double.MAX_VALUE);
