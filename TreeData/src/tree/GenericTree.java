@@ -26,7 +26,10 @@ public class GenericTree implements Tree {
         // Generate the remaining values and insert them into the tree
         for (int i = 1; i < numberOfNodes; i++) {
             TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size())); // Randomly select a parent node
-            int newValue = (int) (Math.random() * 100); // Random new value generation, adjust range as needed
+            int newValue;
+            do {
+                newValue = (int) (Math.random() * 100);
+            } while (containsValue(root, newValue)); // Ensure the value is unique
             insert(parentNode.getValue(), newValue); // Pass parent node directly
             nodes.add(new TreeNode(newValue)); // Add the new node to the list of nodes
         }
@@ -41,6 +44,10 @@ public class GenericTree implements Tree {
             root = new TreeNode(newValue);
             return;
         }
+        if (containsValue(root, newValue)) { System.out.println("The new value has already");
+        
+        }
+        else {
 
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
@@ -51,7 +58,7 @@ public class GenericTree implements Tree {
             System.out.println("Parent value not found in the tree.");
         }
     }
-
+    }
 
     @Override
     public void delete(int value) {

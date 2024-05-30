@@ -26,7 +26,10 @@ public class BalancedTree implements Tree {
 
         for (int i = 1; i < numberOfNodes; i++) {
             TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size()));
-            int newValue = (int) (Math.random() * 100);           
+            int newValue;
+            do {
+                newValue = (int) (Math.random() * 100);
+            } while (containsValue(root, newValue)); // Ensure the value is unique
             numberOfNodes+=insertWithBalance(parentNode, newValue, nodes);;
             if (nodes.size() >= numberOfNodes) break; // Exit loop when desired number of nodes is reached
         }
@@ -179,6 +182,8 @@ public class BalancedTree implements Tree {
     public void setMaximumDifference(int maxDifference) {
         this.maxDifference = maxDifference;
     }
+    
+    
 
     @Override
     public void insert(int parentValue, int newValue) {
@@ -186,7 +191,10 @@ public class BalancedTree implements Tree {
             root = new TreeNode(newValue);
             return;
         }
-
+        if (containsValue(root, newValue)) { System.out.println("The new value has already");
+        
+        }
+        else {
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
             TreeNode newNode = new TreeNode(newValue);
@@ -200,6 +208,7 @@ public class BalancedTree implements Tree {
             }
         } else {
             System.out.println("Parent value not found in the tree.");
+        }
         }
     }
 }

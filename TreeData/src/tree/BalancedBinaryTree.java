@@ -38,7 +38,10 @@ public class BalancedBinaryTree implements Tree{
                 break; // No eligible parents left
             }
 
-            int newValue = (int) (Math.random() * 100); // Random new value generation, adjust range as needed
+            int newValue;
+            do {
+                newValue = (int) (Math.random() * 100);
+            } while (containsValue(root, newValue)); // Ensure the value is unique
             TreeNode newNode = new TreeNode(newValue);
             parentNode.addChild(newNode); // Add the new node as a child of the parent
             nodes.add(newNode); // Add the new node to the list of nodes
@@ -223,6 +226,10 @@ public class BalancedBinaryTree implements Tree{
             root = new TreeNode(newValue);
             return;
         }
+        if (containsValue(root, newValue)) { System.out.println("The new value has already");
+        
+        }
+        else {
 
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
@@ -242,6 +249,7 @@ public class BalancedBinaryTree implements Tree{
         } else {
             System.out.println("Parent value not found in the tree.");
         }
+    }
     }
 
 }
