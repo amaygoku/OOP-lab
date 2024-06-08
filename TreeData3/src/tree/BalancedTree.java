@@ -14,6 +14,24 @@ public class BalancedTree implements Tree {
         this.root = null;
         this.maxDifference = maxDifference;
     }
+    
+    @Override
+    public Tree cloneTree() {
+        BalancedTree clonedTree = new BalancedTree(this.maxDifference);
+        if (this.root != null) {
+            clonedTree.root = this.root.cloneNode();
+        }
+        return clonedTree;
+    }
+    
+    @Override
+    public void update(int oldValue, int newValue) {
+        TreeNode node = search(oldValue);
+        if (node == null) {
+            throw new IllegalArgumentException("Value " + oldValue + " not found in the tree.");
+        }
+        node.setValue(newValue); // Change the node's value
+    }
 
     @Override
     public void createRandomTree(int numberOfNodes) {
@@ -26,7 +44,10 @@ public class BalancedTree implements Tree {
 
         for (int i = 1; i < numberOfNodes; i++) {
             TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size()));
-            int newValue = (int) (Math.random() * 100);           
+            int newValue;
+            do {
+                newValue = (int) (Math.random() * 100);
+            } while (containsValue(root, newValue)); // Ensure the value is unique
             numberOfNodes+=insertWithBalance(parentNode, newValue, nodes);;
             if (nodes.size() >= numberOfNodes) break; // Exit loop when desired number of nodes is reached
         }
@@ -186,7 +207,10 @@ public class BalancedTree implements Tree {
             root = new TreeNode(newValue);
             return;
         }
-
+        if (containsValue(root, newValue)) { System.out.println("The new value has already");
+        
+        }
+        else {
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
             TreeNode newNode = new TreeNode(newValue);
@@ -201,5 +225,7 @@ public class BalancedTree implements Tree {
         } else {
             System.out.println("Parent value not found in the tree.");
         }
+        }
     }
 }
+

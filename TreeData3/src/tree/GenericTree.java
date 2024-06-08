@@ -11,6 +11,24 @@ public class GenericTree implements Tree {
     public GenericTree() {
         this.root = null;
     }
+    
+    @Override
+    public Tree cloneTree() {
+        GenericTree clonedTree = new GenericTree();
+        if (this.root != null) {
+            clonedTree.root = this.root.cloneNode();
+        }
+        return clonedTree;
+    }
+    
+    @Override
+    public void update(int oldValue, int newValue) {
+        TreeNode node = search(oldValue);
+        if (node == null) {
+            throw new IllegalArgumentException("Value " + oldValue + " not found in the tree.");
+        }
+        node.setValue(newValue); // Change the node's value
+    }
 
     @Override
     public void createRandomTree(int numberOfNodes) {
@@ -41,6 +59,10 @@ public class GenericTree implements Tree {
             root = new TreeNode(newValue);
             return;
         }
+        if (containsValue(root, newValue)) { System.out.println("The new value has already");
+        
+        }
+        else {
 
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
@@ -50,6 +72,7 @@ public class GenericTree implements Tree {
         } else {
             System.out.println("Parent value not found in the tree.");
         }
+    }
     }
 
 

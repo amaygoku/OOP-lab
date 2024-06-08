@@ -10,13 +10,18 @@ public class TreeNode {
     List<TreeNode> children;
     private Circle circle;
     private List<Line> lines;
+    private int height;
     private double x, y;
 
     public TreeNode(int value) {
         this.value = value;
+        this.height = 1;
         this.children = new ArrayList<>();
         this.circle = new Circle();
         this.lines = new ArrayList<>();
+    }
+    public void setValue(int value) {
+    	this.value = value;
     }
 
     public Circle getCircle() {
@@ -57,5 +62,23 @@ public class TreeNode {
 
     public void setY(double y) {
         this.y = y;
+    }
+
+    
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+    
+    public TreeNode cloneNode() {
+        TreeNode clone = new TreeNode(this.value);
+        clone.setHeight(this.height);
+        for (TreeNode child : this.children) {
+            clone.addChild(child.cloneNode());
+        }
+        return clone;
     }
 }
