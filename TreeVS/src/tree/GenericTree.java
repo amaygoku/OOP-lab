@@ -1,22 +1,20 @@
 package tree;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Stack;
 
-public class BinaryTree implements Tree {
+public class GenericTree implements Tree {
     private TreeNode root;
 
-    public BinaryTree() {
+    public GenericTree() {
         this.root = null;
     }
     
     @Override
     public Tree cloneTree() {
-        BinaryTree clonedTree = new BinaryTree();
+        GenericTree clonedTree = new GenericTree();
         if (this.root != null) {
             clonedTree.root = this.root.cloneNode();
         }
@@ -32,6 +30,7 @@ public class BinaryTree implements Tree {
         node.setValue(newValue); // Change the node's value
     }
 
+    @Override
     public void createRandomTree(int numberOfNodes) {
         if (numberOfNodes <= 0) return;
 
@@ -44,41 +43,22 @@ public class BinaryTree implements Tree {
 
         // Generate the remaining values and insert them into the tree
         for (int i = 1; i < numberOfNodes; i++) {
-            // Find a parent node with less than two children
-            TreeNode parentNode = findParentWithAvailableSlot(nodes);
-
-            if (parentNode == null) {
-                //System.out.println("All nodes have maximum children, cannot insert more.");
-                break; // No eligible parents left
-            }
-
+            TreeNode parentNode = nodes.get((int) (Math.random() * nodes.size())); // Randomly select a parent node
             int newValue;
             do {
                 newValue = (int) (Math.random() * 100);
             } while (containsValue(root, newValue)); // Ensure the value is unique
-            TreeNode newNode = new TreeNode(newValue);
-            parentNode.addChild(newNode); // Add the new node as a child of the parent
-            nodes.add(newNode); // Add the new node to the list of nodes
+            insert(parentNode.getValue(), newValue); // Pass parent node directly
+            nodes.add(new TreeNode(newValue)); // Add the new node to the list of nodes
         }
     }
-    
-    private TreeNode findParentWithAvailableSlot(List<TreeNode> nodes) {
-        // Shuffle the list to randomize selection
-        Collections.shuffle(nodes);
 
-        // Iterate through the shuffled list and find a parent node with less than two children
-        for (TreeNode node : nodes) {
-            if (node.getChildren().size() < 2) {
-                return node;
-            }
-        }
 
-        return null; // No parent with available slot found
-    }
-    
 
+    @Override
     public void insert(int parentValue, int newValue) {
         if (root == null) {
+            // Inserting as root node
             root = new TreeNode(newValue);
             return;
         }
@@ -89,53 +69,55 @@ public class BinaryTree implements Tree {
 
         TreeNode parentNode = search(root, parentValue);
         if (parentNode != null) {
-            if (parentNode.getChildren().size() < 2) {
-                parentNode.addChild(new TreeNode(newValue));
-            } else {
-                System.out.println("Parent node already has two children.");
-            }
+            // Insert the new value as a child of the parent node
+            TreeNode newNode = new TreeNode(newValue);
+            parentNode.addChild(newNode);
         } else {
             System.out.println("Parent value not found in the tree.");
         }
-        }
+    }
     }
 
+
+    @Override
     public void delete(int value) {
-        // Logic for deleting from a binary tree
-        root = deleteRecursive(root, value);
+        // Logic for deleting from a generic tree
+        if (root == null) {
+            return;
+        }
+        if (root.getValue() == value) {
+            root = null; // If the root is to be deleted, set the tree to empty
+            return;
+        }
+        deleteRecursive(root, value);
     }
 
-    private TreeNode deleteRecursive(TreeNode currentNode, int value) {
-        if (currentNode == null) {
-            return null;
-        }
-
-        if (value == currentNode.getValue()) {
-            // Node to be deleted found
-            return null; // Deleting the current node and all its children
-        }
-
-        // Recursively delete in children
-        List<TreeNode> children = currentNode.getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            TreeNode child = children.get(i);
+    private boolean deleteRecursive(TreeNode currentNode, int value) {
+        for (TreeNode child : currentNode.getChildren()) {
             if (child.getValue() == value) {
-                children.remove(i);
-                i--; // Adjust index after removal
+                currentNode.removeChild(child);
+                return true;
             } else {
-                deleteRecursive(child, value);
+                boolean deleted = deleteRecursive(child, value);
+                if (deleted) {
+                    return true;
+                }
             }
         }
-
-        return currentNode;
+        return false;
     }
 
+    @Override
     public TreeNode search(int value) {
         return search(root, value);
     }
 
     private TreeNode search(TreeNode currentNode, int value) {
-        if (currentNode == null || currentNode.getValue() == value) {
+        if (currentNode == null) {
+            return null;
+        }
+
+        if (currentNode.getValue() == value) {
             return currentNode;
         }
 
@@ -145,6 +127,7 @@ public class BinaryTree implements Tree {
                 return result;
             }
         }
+
         return null;
     }
 
@@ -166,31 +149,16 @@ public class BinaryTree implements Tree {
         return root;
     }
 
-    private void traverseDFS() {
-        Stack<TreeNode> stack = new Stack<>();
-        stack.push(root);
-
-        while (!stack.isEmpty()) {
-            TreeNode currentNode = stack.pop();
-            System.out.print(currentNode.getValue() + " ");
-
-            // Push children onto the stack in reverse order to achieve DFS
-            List<TreeNode> children = currentNode.getChildren();
-            for (int i = children.size() - 1; i >= 0; i--) {
-                stack.push(children.get(i));
-            }
-        }
-    }
-
     public void bfsTraverse() {
         if (root != null) {
             traverseBFS();
         }
     }
-
+    
     public void dfsTraverse() {
         if (root != null) {
-            traverseDFS();
+            traverseBFS();
         }
     }
+
 }

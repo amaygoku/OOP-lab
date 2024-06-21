@@ -32,12 +32,16 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tree.*;
 import javafx.scene.shape.Circle;
@@ -81,11 +85,18 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+
+import java.awt.Label;
 import java.io.PrintStream;
 
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import tree.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.geometry.Pos;
 
 public class TreeVisualizer {
     private Pane treePane;
@@ -116,6 +127,8 @@ public class TreeVisualizer {
     private Text nodeText;
     private StackPane notificationPane;
     private StackPane nodePane;
+    private Set<TreeNode> visitedNodes;
+
     
   
     public TreeVisualizer(String treeType, Stage primaryStage, Scene mainMenuScene) {
@@ -152,13 +165,13 @@ public class TreeVisualizer {
     private void setupUI() {
         treePane = new Pane();
         treePane.setPrefSize(800, 600);
-        treePane.setStyle("-fx-background-color: #F5F5DC");
+        treePane.setStyle("-fx-background-color: #F5F5DC;");
 
         VBox controls = new VBox(10);
         controls.setPadding(new Insets(10));
         controls.setAlignment(Pos.TOP_LEFT);
         controls.setStyle("-fx-background-color: #98FB98;");
-        
+
         Button createButton = new Button("Create");
         createButton.setOnAction(e -> createRandomTree());
 
@@ -170,19 +183,19 @@ public class TreeVisualizer {
 
         Button searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchNode());
-        
+
         Button traverseButton = new Button("Traverse");
         traverseButton.setOnAction(e -> traverseNode());
-        
+
         Button updateButton = new Button("Update");
         updateButton.setOnAction(e -> updateNode());
-        
+
         Button backButton = new Button("Back");
         backButton.setOnAction(e -> back());
 
         // Styling the buttons
-        for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton,backButton}) {
-            button.setStyle("-fx-background-color: blue; -fx-text-fill: white; -fx-font-size: 16;");
+        for (Button button : new Button[]{createButton, insertButton, deleteButton, searchButton, traverseButton, updateButton, backButton}) {
+            button.setStyle("-fx-background-color: #808080; -fx-text-fill: white; -fx-font-size: 16;");
             button.setPadding(new Insets(20)); // Increased padding
             button.setMinHeight(50); // Set minimum height
             button.setMaxWidth(Double.MAX_VALUE);
@@ -264,27 +277,11 @@ public class TreeVisualizer {
 
         // Set the desired position
         notificationPane.setLayoutX(5); // Set x-coordinate
-        notificationPane.setLayoutY(513); // Set y-coordinate
+        notificationPane.setLayoutY(813); // Set y-coordinate
         
+        // Add notificationPane to treePane
+        treePane.getChildren().add(notificationPane);
         
-        //Create rectangle box for nodeTraverse
-        Rectangle nodeTraverse = new Rectangle(400,100);
-        nodeTraverse.setFill(Color.WHITE);
-        nodeTraverse.setStroke(Color.BLACK);
-        nodeTraverse.setStrokeWidth(2);
-        
-     // Create StackPane to hold the Rectangle and Text
-        nodePane = new StackPane(nodeTraverse);
-        StackPane.setAlignment(nodePane, Pos.BOTTOM_LEFT); // Align to bottom-left corner
-        StackPane.setMargin(nodePane, new Insets(10)); // Add margin
-        
-     // Set the desired position
-        nodePane.setLayoutX(5); // Set x-coordinate
-        nodePane.setLayoutY(410); // Set y-coordinate
-        
-        
-     // Add both panes to treePane
-        treePane.getChildren().addAll(notificationPane, nodePane);
     }
     
     private void pause() {
@@ -423,6 +420,7 @@ public class TreeVisualizer {
 
 
     private void insertNode() {
+    	
         TextInputDialog dialog = new TextInputDialog();
         dialog.initOwner(primaryStage);
         dialog.setTitle("Insert Node");
@@ -494,16 +492,93 @@ public class TreeVisualizer {
                         int parentValue = Integer.parseInt(values[0].trim());
                         saveStateForUndo();
                         int newValue = Integer.parseInt(values[1].trim());
+                        TreeNode nodeToInsert = searchNodeForDeletion(parentValue);
                         if (tree instanceof GenericTree) {
-                            ((GenericTree) tree).insert(parentValue, newValue);
+                        	
+                        	if (nodeToInsert != null) {
+                                // Add a delay to ensure the animation completes before deletion
+                                if (timeline != null) {
+                                    timeline.setOnFinished(e -> {
+                                    	((GenericTree) tree).insert(parentValue, newValue);
+                                        highlightedNodes.clear();
+                                        permanentlyHighlightedNodes.clear();
+                                        highlightedEdges.clear();
+                                        drawTree();
+                                    });
+                                } else {
+                                	((GenericTree) tree).insert(parentValue, newValue);
+                                    
+                                }
+                            } else {
+                                showAlert("Node Not Found", "The node was not found.");
+                            }
+                            
                         } else if (tree instanceof BinaryTree) {
-                            ((BinaryTree) tree).insert(parentValue, newValue);
+                        	if (nodeToInsert != null) {
+                                // Add a delay to ensure the animation completes before deletion
+                                if (timeline != null) {
+                                    timeline.setOnFinished(e -> {
+                                    	((BinaryTree) tree).insert(parentValue, newValue);
+                                        highlightedNodes.clear();
+                                        permanentlyHighlightedNodes.clear();
+                                        highlightedEdges.clear();
+                                        
+                                        drawTree();
+                                    });
+                                } else {
+                                	((BinaryTree) tree).insert(parentValue, newValue);
+                                    
+                                }
+                            } else {
+                                showAlert("Node Not Found", "The node was not found.");
+                            }
+                            
                         } else if (tree instanceof BalancedTree) {
-                            ((BalancedTree) tree).insert(parentValue, newValue);
+                        	if (nodeToInsert != null) {
+                                // Add a delay to ensure the animation completes before deletion
+                                if (timeline != null) {
+                                    timeline.setOnFinished(e -> {
+                                    	((BalancedTree) tree).insert(parentValue, newValue);
+                                        highlightedNodes.clear();
+                                        permanentlyHighlightedNodes.clear();
+                                        highlightedEdges.clear();
+                                        drawTree();
+                                    });
+                                } else {
+                                	((BalancedTree) tree).insert(parentValue, newValue);
+                                    
+                                }
+                            } else {
+                                showAlert("Node Not Found", "The node was not found.");
+                            }
+                            
                         } else if (tree instanceof BalancedBinaryTree) {
-                            ((BalancedBinaryTree) tree).insert(parentValue, newValue);
+                        	if (nodeToInsert != null) {
+                                // Add a delay to ensure the animation completes before deletion
+                                if (timeline != null) {
+                                    timeline.setOnFinished(e -> {
+                                    	((BalancedBinaryTree) tree).insert(parentValue, newValue);
+                                        highlightedNodes.clear();
+                                        permanentlyHighlightedNodes.clear();
+                                        highlightedEdges.clear();
+                                        drawTree();
+                                    });
+                                } else {
+                                	((BalancedBinaryTree) tree).insert(parentValue, newValue);
+                                    
+                                }
+                            } else {
+                                showAlert("Node Not Found", "The node was not found.");
+                            }
+                            
                         } else {
                             showAlert("Unsupported Operation", "Insert operation is not supported for this tree type.");
+                        }
+                        for (int i = 0; i < highlightedNodes.size(); i++) {
+                            TreeNode node = highlightedNodes.get(i);
+                            if(node.getValue()==newValue) {
+                            	targetNode = node;
+                            }
                         }
                         drawTree();
                     } else {
@@ -514,6 +589,7 @@ public class TreeVisualizer {
                 }
             });
         }
+    	System.out.println();
         saveCurrentState();
     }
     private double getNodePositionX(TreeNode node) {
@@ -527,6 +603,7 @@ public class TreeVisualizer {
     private void updateNode() {
         TextInputDialog oldDialog = new TextInputDialog();
         oldDialog.setTitle("Update Node");
+        oldDialog.initOwner(primaryStage);
         oldDialog.setHeaderText("Enter the value to be updated:");
         oldDialog.setContentText("Old Value:");
 
@@ -542,6 +619,7 @@ public class TreeVisualizer {
                 }
 
                 TextInputDialog newDialog = new TextInputDialog();
+                newDialog.setTitle("Update Node");
                 newDialog.setTitle("Update Node");
                 newDialog.setHeaderText("Enter the new value:");
                 newDialog.setContentText("New Value:");
@@ -565,11 +643,16 @@ public class TreeVisualizer {
 
     private TreeNode searchNodeForDeletion(int targetValue) {
         ChoiceDialog<String> searchTypeDialog = new ChoiceDialog<>("BFS", "DFS", "IDDFS");
+        searchTypeDialog.initOwner(primaryStage);
         searchTypeDialog.setTitle("Search Nodes");
         searchTypeDialog.setHeaderText("Select search method");
         searchTypeDialog.setContentText("Choose search method:");
 
         final TreeNode[] foundNode = {null};
+        
+     // Set dialog as non-modal
+        searchTypeDialog.initOwner(primaryStage); // Set the owner of the dialog to the main application window
+        searchTypeDialog.initModality(Modality.NONE); // Make the dialog non-modal
 
         searchTypeDialog.showAndWait().ifPresent(selected -> {
             highlightedNodes.clear();
@@ -589,7 +672,7 @@ public class TreeVisualizer {
                 animateSearch(targetValue);
                 foundNode[0] = highlightedNodes.get(highlightedNodes.size() -1 );
             } else {
-                showAlert("Search Result", "Node not found.");
+                //showAlert("Search Result", "Node not found.");
             }
         });
 
@@ -630,20 +713,27 @@ public class TreeVisualizer {
                 showAlert("Invalid Input", "Please enter a valid integer.");
             }
         });
+    	System.out.println();
         saveCurrentState();
     }
 
     private void searchNode() {
         TextInputDialog dialog = new TextInputDialog();
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Search Node");
         dialog.setHeaderText("Search for a node");
         dialog.setContentText("Please enter a value:");
+        
+     // Set dialog as non-modal
+        dialog.initOwner(primaryStage); // Set the owner of the dialog to the main application window
+        dialog.initModality(Modality.NONE); // Make the dialog non-modal
 
         dialog.showAndWait().ifPresent(value -> {
             try {
                 int targetValue = Integer.parseInt(value);
                 
                 ChoiceDialog<String> choiceDialog = new ChoiceDialog<>("BFS", "DFS","IDDFS");
+                choiceDialog.initOwner(primaryStage);
                 choiceDialog.setTitle("Search Method");
                 choiceDialog.setHeaderText("Select search method");
                 choiceDialog.setContentText("Choose search method:");
@@ -672,6 +762,7 @@ public class TreeVisualizer {
                 showAlert("Invalid Input", "Please enter a valid integer.");
             }
         });
+    	System.out.println();
     }
     private boolean iddfsSearch(TreeNode root, int value) {
         if (root == null) return false;
@@ -724,7 +815,7 @@ public class TreeVisualizer {
             if (node.getValue() == targetValue) {
                 return true;
             }
-            Collections.reverse(node.getChildren()); // To maintain correct order
+            //Collections.reverse(node.getChildren()); // To maintain correct order
             stack.addAll(node.getChildren());
         }
         return false;
@@ -738,9 +829,12 @@ public class TreeVisualizer {
         targetNode = null;
         for (int i = 0; i < highlightedNodes.size(); i++) {
             TreeNode node = highlightedNodes.get(i);
+            
             KeyFrame keyFrame = new KeyFrame(Duration.seconds(i/1.5), e -> {
+            	System.out.print(node.getValue() + " ");
                 if (node.getValue() == targetValue) {
                 	permanentlyHighlightedNodes.add(node);
+                	
                     targetNode = node; // Set the target node
                     drawTree();
                 } else {
@@ -776,13 +870,18 @@ public class TreeVisualizer {
 
     
     private void traverseNode() {
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("BFS", "DFS","IDDFS");
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("BFS", "DFS", "IDDFS");
+        dialog.initOwner(primaryStage);
         dialog.setTitle("Traverse Nodes");
         dialog.setHeaderText("Select traversal method");
         dialog.setContentText("Choose traversal method:");
 
+        // Set dialog as non-modal
+        dialog.initOwner(primaryStage); // Set the owner of the dialog to the main application window
+        dialog.initModality(Modality.NONE); // Make the dialog non-modal
+
         dialog.showAndWait().ifPresent(selected -> {
-        	targetNode = null;
+            targetNode = null;
             highlightedNodes.clear();
             permanentlyHighlightedNodes.clear();
             highlightedEdges.clear(); // Clear highlighted edges
@@ -790,11 +889,12 @@ public class TreeVisualizer {
                 bfsTraversal(tree.getRoot());
             } else if (selected.equals("DFS")) {
                 dfsTraversal(tree.getRoot());
-            }else if (selected.equals("IDDFS")) {
+            } else if (selected.equals("IDDFS")) {
                 iddfsTraversal(tree.getRoot());
             }
             animateTraversal();
         });
+    	System.out.println();
     }
 
 
@@ -804,6 +904,7 @@ public class TreeVisualizer {
         queue.add(root);
         while (!queue.isEmpty()) {
             TreeNode node = queue.poll();
+            
             highlightedNodes.add(node);
             queue.addAll(node.getChildren());
         }
@@ -816,7 +917,7 @@ public class TreeVisualizer {
         while (!stack.isEmpty()) {
             TreeNode node = stack.pop();
             highlightedNodes.add(node);
-            Collections.reverse(node.getChildren()); // To maintain correct order
+            //Collections.reverse(node.getChildren()); // To maintain correct order
             stack.addAll(node.getChildren());
         }
     }
@@ -858,6 +959,7 @@ public class TreeVisualizer {
             TreeNode node = highlightedNodes.get(i);
             KeyFrame keyFrame = new KeyFrame(Duration.seconds(i), e -> {
                 permanentlyHighlightedNodes.add(node);
+                System.out.print(node.getValue() + " ");
                 drawTree(); // Redraw tree to highlight nodes
             });
             timeline.getKeyFrames().add(keyFrame);
@@ -873,12 +975,21 @@ public class TreeVisualizer {
                 timeline.getKeyFrames().add(edgeKeyFrame);
             }
         }
+       
         timeline.play();
+        
     }
     
     private void drawTree() {
         // Clear the existing elements
         treePane.getChildren().clear();
+        visitedNodes = new HashSet<>(); // Initialize the visitedNodes set
+
+        // Clear the notification pane
+        if (notificationPane != null) {
+            notificationPane.getChildren().clear();
+        }
+
         TreeNode root = tree.getRoot();
         if (root != null) {
             if (tree instanceof BinaryTree || tree instanceof BalancedBinaryTree) {
@@ -887,39 +998,51 @@ public class TreeVisualizer {
                 drawGenericTree(root, treePane.getWidth() / 2, 30, treePane.getWidth() / 4, 50);
             }
         }
-        
-     // Create rectangle box for notifications
-        Rectangle notificationBox = new Rectangle(400, 200);
-        notificationBox.setFill(Color.WHITE);
-        notificationBox.setStroke(Color.BLACK);
-        notificationBox.setStrokeWidth(2);
 
-        notificationPane = new StackPane(notificationBox);
-        StackPane.setAlignment(notificationPane, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(notificationPane, new Insets(10));
+        // Create rectangle box for notifications
+        if (notificationPane != null) {
+            // Clear previous content
+            notificationPane.getChildren().clear();
 
-        notificationPane.setLayoutX(5);
-        notificationPane.setLayoutY(513);
+            // Create a new notification box
+            Rectangle notificationBox = new Rectangle(400, 200); // Adjust width and height as needed
+            notificationBox.setFill(Color.WHITE);
+            notificationBox.setStroke(Color.BLACK);
+            notificationBox.setStrokeWidth(2);
 
-        // Add notificationPane to treePane
-        treePane.getChildren().add(notificationPane);
+            // Create a TextFlow for the notification text
+            TextFlow notificationTextFlow = new TextFlow();
+            notificationTextFlow.setMaxWidth(380); // Slightly less than the rectangle width to avoid overflow
 
-        // Create rectangle box for nodeTraverse
-        Rectangle nodeTraverse = new Rectangle(400, 100);
-        nodeTraverse.setFill(Color.WHITE);
-        nodeTraverse.setStroke(Color.BLACK);
-        nodeTraverse.setStrokeWidth(2);
+            // Create Text nodes for each line of content
+            //Text notificationText = new Text(notificationContent);
+            double fontSize = 16.0;
 
-        nodePane = new StackPane(nodeTraverse);
-        StackPane.setAlignment(nodePane, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(nodePane, new Insets(10));
+         // Create a Font object with the desired size
+         Font font = Font.font(fontSize);
 
-        nodePane.setLayoutX(5);
-        nodePane.setLayoutY(410);
+         // Set the font to the notificationText
+         notificationText.setFont(font);
 
-        // Add nodePane to treePane
-        treePane.getChildren().add(nodePane);
+            notificationText.setFill(Color.BLACK);
+
+            // Add the Text node to the TextFlow
+            notificationTextFlow.getChildren().add(notificationText);
+
+            // Set the desired position of the notificationPane
+            notificationPane.setLayoutX(10); // Set x-coordinate
+            notificationPane.setLayoutY(treePane.getHeight() - 210); // Set y-coordinate
+
+            // Add new content to the notificationPane
+            notificationPane.getChildren().addAll(notificationBox, notificationTextFlow);
+
+            // Add notificationPane to treePane if it's not already added
+            if (!treePane.getChildren().contains(notificationPane)) {
+                treePane.getChildren().add(notificationPane);
+            }
+        }
     }
+
 
     private void drawTreeRecursive(TreeNode node, double x, double y, double xOffset, double yOffset) {
         if (node == null) return;
@@ -967,56 +1090,66 @@ public class TreeVisualizer {
         Text text = new Text(x - 5, y + 5, String.valueOf(node.getValue()));
         treePane.getChildren().add(text);
     }
+    
 
-    private void drawGenericTree(TreeNode node, double x, double y, double xOffset, double yOffset) {
+    private double nodeRadius = 15;
+
+    public void drawGenericTree(TreeNode node, double x, double y, double xOffset, double yOffset) {
         if (node == null) return;
 
-        if (node.getX() == 0 && node.getY() == 0) {
-            node.setX(x); // Set initial position if not already set
-            node.setY(y);
-        } else {
-            x = node.getX(); // Use stored position
-            y = node.getY();
+        if (node.getChildren().isEmpty()) {
+            // Draw node
+            drawNode(node, x, y);
+            return;
         }
 
-        double step = 2 * xOffset / Math.max(1, node.getChildren().size() - 1);
-        double currentX = x - xOffset;
+        double angleStep = 150.0 / node.getChildren().size();
+        double angle = 30;
+
         for (TreeNode child : node.getChildren()) {
-            double newX = currentX;
-            double newY = y + yOffset;
-            if (child.getX() == 0 && child.getY() == 0) {
-                child.setX(newX); // Set initial position if not already set
-                child.setY(newY);
-            } else {
-                newX = child.getX(); // Use stored position
-                newY = child.getY();
-            }
+            double newX = x + xOffset * Math.cos(Math.toRadians(angle));
+            double newY = y + yOffset * Math.sin(Math.toRadians(angle));
+
             Line line = new Line(x, y, newX, newY);
             line.setStrokeWidth(3);
             if (highlightedEdges.contains(line) || 
                 (permanentlyHighlightedNodes.contains(node) && permanentlyHighlightedNodes.contains(child))) {
-                line.setStroke(Color.RED); // Keep the edge highlighted
+                line.setStroke(Color.RED); // Highlight the edge
             }
             treePane.getChildren().add(line);
+
             drawGenericTree(child, newX, newY, xOffset / 2, yOffset);
-            currentX += step;
+            angle += angleStep;
         }
 
-        Circle circle = new Circle(x, y, 15);
+        drawNode(node, x, y);
+    }
+
+    private void drawNode(TreeNode node, double x, double y) {
+        Circle circle = new Circle(x, y, nodeRadius);
         if (permanentlyHighlightedNodes.contains(node)) {
-            circle.setFill(Color.YELLOW); // Keep the node highlighted
+            circle.setFill(Color.YELLOW); // Highlight the node
         } else {
             circle.setFill(Color.WHITE);
         }
         if (node == targetNode) {
-            circle.setFill(Color.AQUAMARINE); // Highlight the target node in aquamarine
+            circle.setFill(Color.AQUAMARINE); // Highlight the target node
         }
         circle.setStroke(Color.BLACK);
         treePane.getChildren().add(circle);
 
         Text text = new Text(x - 5, y + 5, String.valueOf(node.getValue()));
         treePane.getChildren().add(text);
+
+        // Store node position
+        if (node.getX() == 0 && node.getY() == 0) {
+            node.setX(x);
+            node.setY(y);
+        }
     }
+
+
+
     
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1085,5 +1218,6 @@ public class TreeVisualizer {
             return permanentlyHighlightedNodes;
         }
     }
+    
     
 }
